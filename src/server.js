@@ -67,6 +67,10 @@ export function fakeServer({ environment = "development" } = {}) {
 }
 
 const isValidRegisterPayload = function(payload) {
+
+    //safely trim login
+    payload.login = (typeof payload.login).toLowerCase() === 'string' && payload.login.replace(/\s+?/g, '');
+
     return isValidEmail(payload.email) && isValidLogin(payload.login) && isValidPassword(payload.password) && payload.password === payload.confirm;
 }
 

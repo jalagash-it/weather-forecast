@@ -80,10 +80,47 @@ export default {
     onSubmit(evt) {
       evt.preventDefault();
       const self = this;
-      axios.post("/api/register", this.form).then((res) => {
-        console.log(res);
-        self.$router.push({ name: "Login", query: { registered: "1" } });
-      });
+      axios
+        .post("/api/register", this.form)
+        .then((res) => {
+          console.log(res);
+          self.$router.push({ name: "Login", query: { registered: "1" } });
+        })
+        .catch((err) => {
+          console.log(err);
+          switch (err.response.status) {
+            case 400:
+              {
+                this.$bvToast.toast("Не валидные данные !", {
+                  title: "Ошибка",
+                  solid: true,
+                  variant: "danger",
+                });
+              }
+              break;
+            case 409:
+              {
+                this.$bvToast.toast(
+                  "Пользователь с таким email/логин уже зарегистрирован !",
+                  {
+                    title: "Ошибка",
+                    solid: true,
+                    variant: "danger",
+                  }
+                );
+              }
+              break;
+            default:
+              {
+                this.$bvToast.toast("Произошла ошибка !", {
+                  title: "Ошибка",
+                  solid: true,
+                  variant: "danger",
+                });
+              }
+              break;
+          }
+        });
     },
     onReset() {
       this.form.email = "";
