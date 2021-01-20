@@ -14,9 +14,9 @@ Vue.config.productionTip = false
 Vue.use(BootstrapVue)
     // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin)
-if (process.env.NODE_ENV === "development") {
-    fakeServer()
-}
+
+fakeServer()
+
 new Vue({
     router,
     render: h => h(App)
