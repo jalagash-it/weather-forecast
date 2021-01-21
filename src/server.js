@@ -13,9 +13,9 @@ export function fakeServer({ environment = "development" } = {}) {
 
             }),
         },
-        // seeds(server) {
-        //     server.create("users", { email: "test@mail.ru", password: "test" })
-        // },
+        seeds(server) {
+            server.db.users.insert({ email: "test@mail.ru", password: "test" });
+        },
 
         routes() {
 

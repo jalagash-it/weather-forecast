@@ -51,14 +51,17 @@ import axios from "axios";
 export default {
   data() {
     return {
-      form: { email: "", password: "" },
+      form: { email: "test@mail.ru", password: "test" },
     };
   },
   methods: {
     onSubmit(evt) {
       evt.preventDefault();
 
-      axios.post("/api/login", this.form).then((res) => console.log(res));
+      axios.post("/api/login", this.form).then((res) => {
+        console.log(res);
+        
+      });
     },
     onReset() {
       this.form.email = "";
