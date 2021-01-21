@@ -3,11 +3,16 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 
 Vue.use(VueRouter)
-
+import store from '../store';
 const routes = [{
         path: '/',
         name: 'Home',
-        component: Home
+        component: Home,
+        beforeEnter: (to, from, next) => {
+            store.dispatch('checkUser')
+                .then(() => next())
+                .catch(() => next('/login'));
+        }
     },
     {
         path: '/about',
