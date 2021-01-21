@@ -2,7 +2,7 @@
   <div id="app">
     <div>
       <b-navbar toggleable="lg" type="dark" variant="info">
-        <b-navbar-brand href="#">Погода в мире</b-navbar-brand>
+        <b-navbar-brand to="/">Погода в мире</b-navbar-brand>
 
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
@@ -20,22 +20,20 @@
               >
             </b-nav-form>
 
-            <b-nav-item-dropdown right v-if="user !== null">
-              <!-- Using 'button-content' slot -->
-              <template #button-content>
-                <em>Пользователь</em>
-              </template>
-              <b-dropdown-item to="/profile">Профиль</b-dropdown-item>
-              <b-dropdown-item to="/auth">Выйти</b-dropdown-item>
-            </b-nav-item-dropdown>
-
-            <b-nav-item-dropdown right v-else>
-              <!-- Using 'button-content' slot -->
+            <b-nav-item-dropdown right v-if="!user">
               <template #button-content>
                 <em>Гость</em>
               </template>
               <b-dropdown-item to="/register">Регистрация</b-dropdown-item>
               <b-dropdown-item to="/login">Войти</b-dropdown-item>
+            </b-nav-item-dropdown>
+
+            <b-nav-item-dropdown right v-else>
+              <template #button-content>
+                <em>{{ user.email }}</em>
+              </template>
+              <b-dropdown-item to="/profile">Профиль</b-dropdown-item>
+              <b-dropdown-item to="/login?logout=1">Выйти</b-dropdown-item>
             </b-nav-item-dropdown>
           </b-navbar-nav>
         </b-collapse>
@@ -45,9 +43,20 @@
   </div>
 </template>
 <script>
+// import { mapGetters } from "vuex";
+
 export default {
-  data() {
-    return { user: null };
+  computed: {
+    user() {
+      return this.$store.state.user;
+    },
+  },
+  mounted() {
+    window["test"] = this;
+  },
+  created() {
+    //for miraje tests 
+    localStorage.setItem("token", "test");
   },
 };
 </script>

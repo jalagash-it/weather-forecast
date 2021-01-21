@@ -14,7 +14,7 @@ export function fakeServer({ environment = "development" } = {}) {
             }),
         },
         seeds(server) {
-            server.db.users.insert({ email: "test@mail.ru", password: "test" });
+            server.db.users.insert({ email: "test@mail.ru", password: "test", token: "test" });
         },
 
         routes() {
@@ -24,9 +24,9 @@ export function fakeServer({ environment = "development" } = {}) {
             this.post("/register", (schema, request) => {
 
                 const payload = JSON.parse(request.requestBody);
-                console.log(payload)
+
                 if (!isValidRegisterPayload(payload)) {
-                    return new Response(400, { message: 'bad request' });
+                    return new Response(400, {}, { message: 'bad request' });
                 }
                 if (schema.users.where(u => u.email === payload.email || u.login === payload.login).length > 0) {
                     return new Response(409);
@@ -39,7 +39,7 @@ export function fakeServer({ environment = "development" } = {}) {
                 const payload = JSON.parse(request.requestBody);
 
                 const users = schema.users.where(u => u.email === payload.email && u.password === payload.password);
-                console.log(users);
+
                 if (users && users.length) {
                     const token = faker.random.alphaNumeric(100);
                     users.models[0].update({ token: token });
@@ -48,6 +48,17 @@ export function fakeServer({ environment = "development" } = {}) {
                     return new Response(403)
 
             });
+            this.post('/check', (schema, request) => {
+
+                const token = request.requestHeaders.token;
+                const users = schema.users.where(u => u.token === token);
+                if (!users.length) {
+                    return new Response(403);
+                }
+
+                const { id, email } = users.models[0];
+                return new Response(200, {}, { user: { id, email } });
+            })
             this.post("/logout", (schema, request) => {
                 const payload = JSON.parse(request.requestBody);
                 const users = schema.users.where(u => u.email === payload.email && u.token === payload.token);

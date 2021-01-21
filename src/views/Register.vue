@@ -82,12 +82,10 @@ export default {
       const self = this;
       axios
         .post("/api/register", this.form)
-        .then((res) => {
-          console.log(res);
+        .then(() => {
           self.$router.push({ name: "Login", query: { registered: "1" } });
         })
         .catch((err) => {
-          console.log(err);
           switch (err.response.status) {
             case 400:
               {

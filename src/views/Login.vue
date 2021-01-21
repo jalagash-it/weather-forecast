@@ -47,7 +47,7 @@
   </b-container>
 </template>
 <script>
-import axios from "axios";
+import http from "../services/http";
 export default {
   data() {
     return {
@@ -58,9 +58,9 @@ export default {
     onSubmit(evt) {
       evt.preventDefault();
 
-      axios.post("/api/login", this.form).then((res) => {
-        console.log(res);
-        
+      http.post("/login", this.form).then((res) => {
+        localStorage.setItem("token", res.data);
+        this.$router.push("/");
       });
     },
     onReset() {
