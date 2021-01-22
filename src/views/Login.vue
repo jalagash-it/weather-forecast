@@ -51,7 +51,7 @@ import http from "../services/http";
 export default {
   data() {
     return {
-      form: { email: "test@mail.ru", password: "test" },
+      form: { email: "", password: "" },
     };
   },
   methods: {

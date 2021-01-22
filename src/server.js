@@ -3,6 +3,7 @@ import faker from 'faker';
 
 const db = {
     insert(tableName, payload) {
+        console.log(tableName, payload);
         const table = JSON.parse(localStorage.getItem(tableName)) || [];
         table.push(payload);
         localStorage.setItem(tableName, JSON.stringify(table));
@@ -13,9 +14,15 @@ const db = {
             return [];
         return table.filter(callback);
     },
-    update(tableName, arr, idx, payload) {
-        Object.assign(arr[idx], payload);
-        localStorage.setItem(tableName, JSON.stringify(arr));
+    update(tableName, callBack, payload) {
+        console.log(tableName, payload);
+        const table = JSON.parse(localStorage.getItem(tableName)) || [];
+        const filteredRows = table.filter(callBack);
+        filteredRows.forEach(item => {
+            Object.assign(item, payload);
+        });
+        localStorage.setItem(tableName, JSON.stringify(table));
+        return filteredRows.length;
     }
 };
 export function fakeServer({ environment = "development" } = {}) {
@@ -51,11 +58,11 @@ export function fakeServer({ environment = "development" } = {}) {
             this.post("/login", (schema, request) => {
                 const payload = JSON.parse(request.requestBody);
 
-                const users = db.where('users', u => u.email === payload.email && u.password === payload.password);
 
-                if (users.length) {
-                    const token = faker.random.alphaNumeric(100);
-                    db.update('users', users, 0, { token: token });
+                const token = faker.random.alphaNumeric(100);
+                const affected = db.update('users', u => u.email === payload.email && u.password === payload.password, { token: token });
+
+                if (affected > 0) {
                     return token;
                 } else
                     return new Response(403)
@@ -64,6 +71,8 @@ export function fakeServer({ environment = "development" } = {}) {
             this.post('/check', (schema, request) => {
 
                 const token = request.requestHeaders.token;
+                if (!token || token.length !== 100)
+                    return new Response(403);
                 const users = db.where('users', u => u.token === token);
                 if (!users.length) {
                     return new Response(403);
