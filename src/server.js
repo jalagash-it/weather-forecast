@@ -1,20 +1,33 @@
-import { Server, Model, Response, Factory } from 'miragejs'
+import { Server, Response } from 'miragejs'
 import faker from 'faker';
+
+const db = {
+    insert(tableName, payload) {
+        const table = JSON.parse(localStorage.getItem(tableName)) || [];
+        table.push(payload);
+        localStorage.setItem(tableName, JSON.stringify(table));
+    },
+    where(tableName, callback) {
+        const table = JSON.parse(localStorage.getItem(tableName));
+        if (!table)
+            return [];
+        return table.filter(callback);
+    },
+    update(tableName, arr, idx, payload) {
+        Object.assign(arr[idx], payload);
+        localStorage.setItem(tableName, JSON.stringify(arr));
+    }
+};
 export function fakeServer({ environment = "development" } = {}) {
 
     let server = new Server({
         environment,
 
-        models: {
-            users: Model,
-        },
-        factories: {
-            users: Factory.extend({
 
-            }),
-        },
-        seeds(server) {
-            server.db.users.insert({ email: "test@mail.ru", password: "test", token: "test" });
+        seeds() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            if (!users.find(u => u.email === "test@mail.ru" && u.password === "test"))
+                db.insert('users', { email: "test@mail.ru", password: "test" });
         },
 
         routes() {
@@ -28,21 +41,21 @@ export function fakeServer({ environment = "development" } = {}) {
                 if (!isValidRegisterPayload(payload)) {
                     return new Response(400, {}, { message: 'bad request' });
                 }
-                if (schema.users.where(u => u.email === payload.email || u.login === payload.login).length > 0) {
+                if (db.where('users', u => u.email === payload.email || u.login === payload.login).length > 0) {
                     return new Response(409);
                 }
-                schema.users.create(payload);
+                db.insert('users', payload);
                 return new Response(200);
 
             });
             this.post("/login", (schema, request) => {
                 const payload = JSON.parse(request.requestBody);
 
-                const users = schema.users.where(u => u.email === payload.email && u.password === payload.password);
+                const users = db.where('users', u => u.email === payload.email && u.password === payload.password);
 
-                if (users && users.length) {
+                if (users.length) {
                     const token = faker.random.alphaNumeric(100);
-                    users.models[0].update({ token: token });
+                    db.update('users', users, 0, { token: token });
                     return token;
                 } else
                     return new Response(403)
@@ -51,21 +64,21 @@ export function fakeServer({ environment = "development" } = {}) {
             this.post('/check', (schema, request) => {
 
                 const token = request.requestHeaders.token;
-                const users = schema.users.where(u => u.token === token);
+                const users = db.where('users', u => u.token === token);
                 if (!users.length) {
                     return new Response(403);
                 }
 
-                const { id, email } = users.models[0];
+                const { id, email } = users[0];
                 return new Response(200, {}, { user: { id, email } });
             })
             this.post("/logout", (schema, request) => {
                 const payload = JSON.parse(request.requestBody);
-                const users = schema.users.where(u => u.email === payload.email && u.token === payload.token);
+                const users = db.where('users', u => u.email === payload.email && u.token === payload.token);
                 if (!users || !users.length)
                     return new Response(403);
                 else {
-                    users.models[0].update({ token: faker.random.alphaNumeric(100) });
+                    db.update('users', users, 0, { token: faker.random.alphaNumeric(100) });
                     return new Response(200);
                 }
 
@@ -84,7 +97,6 @@ const isValidRegisterPayload = function(payload) {
 
     return isValidEmail(payload.email) && isValidLogin(payload.login) && isValidPassword(payload.password) && payload.password === payload.confirm;
 }
-
 const isValidEmail = function(email) {
     //eslint-disable-next-line
     const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

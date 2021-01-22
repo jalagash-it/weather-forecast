@@ -14,19 +14,17 @@ const store = new Vuex.Store({
         }
     },
     actions: {
-        async checkUser(context) {
+        checkUser({ commit }) {
             return http.post('/check').then(res => {
-                context.commit('setUser', res.data.user);
+                commit('setUser', res.data.user);
                 return res;
             });
-        }
+        },
+        logout({ commit }) {
+            localStorage.removeItem("token");
+            commit('setUser', null);
+        },
     },
-    getters: {
-        getUser: state => () => {
-            console.log('debug')
-            return state.user;
-        }
-    }
 });
 
 export default store;

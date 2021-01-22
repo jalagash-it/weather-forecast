@@ -1,13 +1,14 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+// import Home from '../views/Home.vue'
 
 Vue.use(VueRouter)
 import store from '../store';
 const routes = [{
         path: '/',
         name: 'Home',
-        component: Home,
+        component: () =>
+            import ('../views/Home.vue'),
         beforeEnter: (to, from, next) => {
             store.dispatch('checkUser')
                 .then(() => next())
